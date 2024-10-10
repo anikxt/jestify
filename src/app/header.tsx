@@ -7,11 +7,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { CircleUser, Menu, Package2, Search } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { ModeToggle } from '@/components/ui/mode-toggle';
+import { SearchInput } from './search-input';
 
 export function Header() {
   return (
@@ -38,7 +39,7 @@ export function Header() {
             <span className="sr-only">Toggle navigation menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="bg-gray-950">
+        <SheetContent side="left">
           <nav className="grid gap-6 text-lg font-medium">
             <Link
               href="#"
@@ -61,20 +62,16 @@ export function Header() {
           action={async (formData) => {
             'use server';
             const search = formData.get('search');
-            redirect('/search?q=${search}');
+            redirect(`/search?q=${search}`);
           }}
           className="ml-auto flex-1 sm:flex-initial"
         >
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              name="search"
-              type="search"
-              placeholder="Search memes..."
-              className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-            />
+            <SearchInput />
           </div>
         </form>
+        <ModeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">
