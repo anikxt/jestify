@@ -3,8 +3,10 @@
 import { urlEndpoint } from '@/app/providers';
 import { FileObject } from 'imagekit/dist/libs/interfaces';
 import { IKImage } from 'imagekitio-next';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { TextOverlay } from './text-overlay';
+import { Button } from '@/components/ui/button';
+import { debounce } from 'lodash';
 
 export function CustomizePanel({
   file,
@@ -14,25 +16,55 @@ export function CustomizePanel({
   const [transformations, setTransformations] = useState<
     Record<string, { raw: string }>
   >({});
+  const [numberOfOverlays, setNumberOfOverlays] = useState(1);
 
   const transformationsArray = Object.values(transformations);
 
+  const onUpdate = useCallback(
+    debounce(
+      (index: number, text: string, x: number, y: number, bgColor?: string) => {
+        setTransformations((current) => ({
+          ...current,
+          [`text${index}`]: {
+            raw: `l-text,i-${text ?? ' '},${
+              bgColor ? `bg-${bgColor},pa-10,` : ''
+            }fs-50,lx-bw_mul_${x.toFixed(2)},ly-bw_mul_${y.toFixed(2)},l-end`,
+          },
+        }));
+      },
+      250
+    ),
+    []
+  );
+
   return (
     <div className="grid grid-cols-2 gap-8">
-      <form className="space-y-4">
-        <TextOverlay
-          onUpdate={(text, x, y) => {
-            setTransformations((current) => ({
-              ...current,
-              ['text']: {
-                raw: `l-text,i-${text ?? ' '},fs-50,lx-bw_mul_${x.toFixed(
-                  2
-                )},ly-bw_mul_${y.toFixed(2)},l-end`,
-              },
-            }));
-          }}
-        />
-      </form>
+      <div className="space-y-4">
+        {new Array(numberOfOverlays).fill('').map((_, index) => (
+          <TextOverlay key={index} index={index + 1} onUpdate={onUpdate} />
+        ))}
+
+        <div className="flex gap-4">
+          <Button onClick={() => setNumberOfOverlays(numberOfOverlays + 1)}>
+            Add Another Overlay
+          </Button>
+
+          <Button
+            variant={'destructive'}
+            onClick={() => {
+              setNumberOfOverlays(numberOfOverlays - 1);
+              const lastIndex = numberOfOverlays - 1;
+              setTransformations((cur) => {
+                const newCur = { ...cur };
+                delete newCur[`text${lastIndex}`];
+                return newCur;
+              });
+            }}
+          >
+            Remove Last
+          </Button>
+        </div>
+      </div>
 
       <IKImage
         path={file.filePath}
