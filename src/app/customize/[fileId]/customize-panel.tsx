@@ -9,22 +9,23 @@ import { Button } from '@/components/ui/button';
 import { debounce } from 'lodash';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card } from '@/components/ui/card';
-import { Download, Heart } from 'lucide-react';
+import { Download } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { toggleFavouriteMemeAction } from './actions';
-import { HeartFilledIcon } from '@radix-ui/react-icons';
+import { FavoriteButton } from './favorite-button';
 
 export function CustomizePanel({
   file,
   isFavorited,
+  isAuthenticated,
 }: {
   file: Pick<FileObject, 'filePath' | 'name' | 'fileId'>;
   isFavorited: boolean;
+  isAuthenticated: boolean;
 }) {
   const [textTransformation, setTextTransformations] = useState<
     Record<string, { raw: string }>
@@ -59,22 +60,14 @@ export function CustomizePanel({
         <h1 className="text-4xl font-bold">Customize</h1>
 
         <div className="flex gap-4 justify-end">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <form
-                  action={toggleFavouriteMemeAction.bind(null, file.fileId)}
-                >
-                  <Button type="submit" variant="outline">
-                    {isFavorited ? <HeartFilledIcon /> : <Heart />}
-                  </Button>
-                </form>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{isFavorited ? 'Unfavorite Meme' : 'Favorite Meme'}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {isAuthenticated && (
+            <FavoriteButton
+              fileId={file.fileId}
+              filePath={file.filePath}
+              isFavorited={isFavorited}
+              pathToRevalidate={`/customize/${file.fileId}`}
+            />
+          )}
 
           <TooltipProvider>
             <Tooltip>
@@ -171,20 +164,22 @@ export function CustomizePanel({
               Add Another Overlay
             </Button>
 
-            <Button
-              variant={'destructive'}
-              onClick={() => {
-                setNumberOfOverlays(numberOfOverlays - 1);
-                const lastIndex = numberOfOverlays - 1;
-                setTextTransformations((cur) => {
-                  const newCur = { ...cur };
-                  delete newCur[`text${lastIndex}`];
-                  return newCur;
-                });
-              }}
-            >
-              Remove Last
-            </Button>
+            {numberOfOverlays > 1 && (
+              <Button
+                variant={'destructive'}
+                onClick={() => {
+                  setNumberOfOverlays(numberOfOverlays - 1);
+                  const lastIndex = numberOfOverlays - 1;
+                  setTextTransformations((cur) => {
+                    const newCur = { ...cur };
+                    delete newCur[`text${lastIndex}`];
+                    return newCur;
+                  });
+                }}
+              >
+                Remove Last
+              </Button>
+            )}
           </div>
         </div>
 

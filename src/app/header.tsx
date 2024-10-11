@@ -29,11 +29,20 @@ export async function Header() {
           <span className="sr-only">Acme Inc</span>
         </Link>
         <Link
-          href="#"
+          href="/search?q="
           className="text-muted-foreground transition-colors hover:text-foreground"
         >
-          Dashboard
+          Browse
         </Link>
+
+        {session && (
+          <Link
+            href="/favorites"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Favorites
+          </Link>
+        )}
       </nav>
       <Sheet>
         <SheetTrigger asChild>
@@ -52,11 +61,20 @@ export async function Header() {
               <span className="sr-only">Acme Inc</span>
             </Link>
             <Link
-              href="#"
+              href="/search?q="
               className="text-muted-foreground hover:text-foreground"
             >
-              Dashboard
+              Browse
             </Link>
+
+            {session && (
+              <Link
+                href="/favorites"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Favorites
+              </Link>
+            )}
           </nav>
         </SheetContent>
       </Sheet>
