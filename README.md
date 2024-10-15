@@ -1,4 +1,4 @@
-# Meme Generator
+# Jestify - Meme Generator App
 
 ## Getting Started
 
