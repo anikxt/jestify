@@ -3,7 +3,7 @@
 import { urlEndpoint } from '@/app/providers';
 import { FileObject } from 'imagekit/dist/libs/interfaces';
 import { IKImage } from 'imagekitio-next';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import { TextOverlay } from './text-overlay';
 import { Button } from '@/components/ui/button';
 import { debounce } from 'lodash';
@@ -35,23 +35,40 @@ export function CustomizePanel({
   const [sharpen, setSharpen] = useState(false);
   const [grayscale, setGrayscale] = useState(false);
 
-  const textTransformationsArray = Object.values(textTransformation);
+  const textTransformationsArray: Array<{ raw: string }> =
+    Object.values(textTransformation);
 
-  const onUpdate = useCallback(
-    debounce(
-      (index: number, text: string, x: number, y: number, bgColor?: string) => {
-        setTextTransformations((current) => ({
-          ...current,
-          [`text${index}`]: {
-            raw: `l-text,i-${text ?? ' '},${
-              bgColor ? `bg-${bgColor},pa-10,` : ''
-            }fs-50,lx-bw_mul_${x.toFixed(2)},ly-bw_mul_${y.toFixed(2)},l-end`,
-          },
-        }));
-      },
-      250
-    ),
+  // Memoize the debounced function outside of useCallback
+  const debouncedUpdate = useMemo(
+    () =>
+      debounce(
+        (
+          index: number,
+          text: string,
+          x: number,
+          y: number,
+          bgColor?: string
+        ) => {
+          setTextTransformations((current) => ({
+            ...current,
+            [`text${index}`]: {
+              raw: `l-text,i-${text ?? ' '},${
+                bgColor ? `bg-${bgColor},pa-10,` : ''
+              }fs-50,lx-bw_mul_${x.toFixed(2)},ly-bw_mul_${y.toFixed(2)},l-end`,
+            },
+          }));
+        },
+        250
+      ),
     []
+  );
+
+  // Now, use the debounced function in useCallback without creating new function references
+  const onUpdate = useCallback(
+    (index: number, text: string, x: number, y: number, bgColor?: string) => {
+      debouncedUpdate(index, text, x, y, bgColor);
+    },
+    [debouncedUpdate] // Depend on the memoized debounced function
   );
 
   return (
@@ -189,14 +206,12 @@ export function CustomizePanel({
               path={file.filePath}
               urlEndpoint={urlEndpoint}
               alt={file.name}
-              transformation={
-                [
-                  blur ? { raw: 'bl-3' } : undefined,
-                  sharpen ? { raw: 'e-sharpen-10' } : undefined,
-                  grayscale ? { raw: 'e-grayscale' } : undefined,
-                  ...textTransformationsArray,
-                ].filter(Boolean) as any
-              }
+              transformation={[
+                blur ? { raw: 'bl-3' } : undefined,
+                sharpen ? { raw: 'e-sharpen-10' } : undefined,
+                grayscale ? { raw: 'e-grayscale' } : undefined,
+                ...textTransformationsArray,
+              ].filter((item): item is { raw: string } => !!item)}
             />
           </div>
         </div>
