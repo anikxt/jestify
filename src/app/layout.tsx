@@ -16,7 +16,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'Meme Generator',
+  title: 'Jestify',
   description: 'Generate cool memes with friends',
 };
 
